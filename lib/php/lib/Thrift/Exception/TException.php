@@ -42,6 +42,7 @@ class TException extends \Exception
 {
   public function __construct($p1=null, $p2=0)
   {
+    parent::__construct($p1, $p2);
     if (is_array($p1) && is_array($p2)) {
       $spec = $p1;
       $vals = $p2;
@@ -51,8 +52,6 @@ class TException extends \Exception
           $this->$var = $vals[$var];
         }
       }
-    } else {
-      parent::__construct($p1, $p2);
     }
   }
 
