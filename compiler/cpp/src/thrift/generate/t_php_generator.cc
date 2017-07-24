@@ -760,7 +760,10 @@ void t_php_generator::generate_php_type_spec(ofstream& out, t_type* t) {
  * type information to generalize serialization routines.
  */
 void t_php_generator::generate_php_struct_spec(ofstream& out, t_struct* tstruct) {
-  indent(out) << "static $_TSPEC = array(" << endl;
+  indent(out) << "if (!isset(self::$_TSPEC)) {" << endl;
+  indent_up();
+
+  indent(out) << "self::$_TSPEC = array(" << endl;
   indent_up();
 
   const vector<t_field*>& members = tstruct->get_members();
@@ -770,14 +773,15 @@ void t_php_generator::generate_php_struct_spec(ofstream& out, t_struct* tstruct)
     indent(out) << (*m_iter)->get_key() << " => array(" << endl;
     indent_up();
     out << indent() << "'var' => '" << (*m_iter)->get_name() << "'," << endl;
-    out << indent() << "'isRequired' => " << ((*m_iter)->get_req() == t_field::T_REQUIRED ? "true" : "false") << "," << endl;
     generate_php_type_spec(out, t);
     indent(out) << ")," << endl;
     indent_down();
   }
 
   indent_down();
-  indent(out) << "  );" << endl << endl;
+  indent(out) << "  );" << endl;
+  indent_down();
+  indent(out) << "}" << endl;
 }
 
 /**
@@ -809,9 +813,7 @@ void t_php_generator::generate_php_struct_definition(ofstream& out,
   out << " {" << endl;
   indent_up();
 
-  out << indent() << "static $isValidate = " << (validate_ ? "true" : "false") << ";" << endl << endl;
-
-  generate_php_struct_spec(out, tstruct);
+  indent(out) << "static $_TSPEC;" << endl << endl;
 
   for (m_iter = members.begin(); m_iter != members.end(); ++m_iter) {
     string dval = "null";
@@ -829,6 +831,8 @@ void t_php_generator::generate_php_struct_definition(ofstream& out,
   string param = (members.size() > 0) ? "$vals=null" : "";
   out << indent() << "public function __construct(" << param << ") {" << endl;
   indent_up();
+
+  generate_php_struct_spec(out, tstruct);
 
   if (members.size() > 0) {
     for (m_iter = members.begin(); m_iter != members.end(); ++m_iter) {
