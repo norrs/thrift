@@ -1017,6 +1017,7 @@ PHP_FUNCTION(thrift_protocol_read_binary) {
     // ex will be destructed, so copy to a zval that zend_throw_exception_object can ownership of
     zval myex;
     ZVAL_COPY(&myex, ex);
+    zval_dtor(return_value);
     zend_throw_exception_object(&myex);
     RETURN_NULL();
   } catch (const std::exception& ex) {
